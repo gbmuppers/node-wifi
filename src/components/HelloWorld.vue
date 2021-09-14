@@ -1,58 +1,63 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div class="container">
+    <h1 v-if="networks.length > 0" class="text-primary my-1">Datos de la red</h1>
+    <div v-for="(network,index) in networks" :key="index" class="w-100 text-muted">
+      <span class="d-block">SSID: {{netowork.ssid}}</span>
+      <span class="d-block">MAC: {{netowork.mac}}</span>
+      <span class="d-block">SIGNAL LEVEL: {{netowork.signal_level}}</span>
+    </div>
+    <div v-if="error" class="w-100 text-danger my-3">
+      <h1 class="d-block">ERROR: {{ error }}</h1>
+    </div>
   </div>
 </template>
 
 <script>
+const wifi = require('node-wifi');
+
 export default {
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  data(){
+    return{
+      networks:[],
+      error:undefined,
+    }
+  },
+  mounted(){
+    // Initialize wifi module
+    // Absolutely necessary even to set interface to null
+    wifi.init({
+      iface: null // network interface, choose a random wifi interface if set to null
+    });
+
+    // Scan networks
+    wifi.scan((error, networks) => {
+      if (error) {
+        this.error = error
+      } else {
+        this.networks = networks
+            /*
+            networks = [
+                {
+                  ssid: '...',
+                  bssid: '...',
+                  mac: '...', // equals to bssid (for retrocompatibility)
+                  channel: <number>,
+                  frequency: <number>, // in MHz
+                  signal_level: <number>, // in dB
+                  quality: <number>, // same as signal level but in %
+                  security: 'WPA WPA2' // format depending on locale for open networks in Windows
+                  security_flags: '...' // encryption protocols (format currently depending of the OS)
+                  mode: '...' // network mode like Infra (format currently depending of the OS)
+                },
+                ...
+            ];
+            */
+      }
+    });
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
